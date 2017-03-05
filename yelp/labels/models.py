@@ -4,6 +4,34 @@ from django.db import models
 
 # Create your models here.
 
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 27 17:23:46 2017
+
+@author: athir
+"""
+
+'''
+Using a pretrained net to generate features for images
+Assuming the script is run on a GPU, it takes close to 6 hours to complete (This can be optimized by changing batch size)
+The output files are close to 4GB each for train and test
+The inception net weights and architecture need to be downloaded from here: https://github.com/dmlc/mxnet-model-gallery/blob/master/imagenet-1k-inception-v3.md
+'''
+
+
+import mxnet as mx
+import logging
+import numpy as np
+from skimage import io, transform
+from mxnet import model
+import pandas as pd
+import time
+import datetime
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+bs = 1
+
 
 class Preprocess(models.Model):
 
@@ -31,7 +59,7 @@ class Preprocess(models.Model):
 	
 	def inception_7(self):
 		start_time =  datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
-		prefix = "static/model/inception_7/"
+		prefix = "model/inception_7/inception_7"
 		num_round = 1
 		network = model.FeedForward.load(prefix, num_round, ctx=mx.cpu(), numpy_batch_size=bs)
 		inner = network.symbol.get_internals()
