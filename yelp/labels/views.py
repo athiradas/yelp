@@ -4,8 +4,8 @@ from django.template import loader, RequestContext
 
 def index(request):
         preprocess = Preprocess()
-        preprocess_iv3 = preprocess.inception_v3()
+        preprocess_iv7 = preprocess.inception_7()
         template = loader.get_template('labels/index.html')
-        context = {'preprocess_iv3':preprocess_iv3}
+        context = {'preprocess_i7':preprocess_i7}
         return HttpResponse(template.render(context, request))
 

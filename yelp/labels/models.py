@@ -6,6 +6,6 @@ from django.db import models
 
 
 class Preprocess(models.Model):
-	def inception_v3(self):
-		return 'inception_v3'
+	def inception_7(self):
+		return 'inception_7'
 
