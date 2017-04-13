@@ -13,15 +13,15 @@ The inception net weights and architecture need to be downloaded from here: http
 '''
 
 
-import mxnet as mx
+#import mxnet as mx
 import logging
 import numpy as np
 from skimage import io, transform
-from mxnet import model
+#from mxnet import model
 import pandas as pd
 import time
 import datetime
-
+'''
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -51,7 +51,7 @@ def PreprocessImage(path, show_img=False,invert_img=False):
 
 start_time =  datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
 
-prefix = "model/inception-7/Inception-7"
+prefix = "model/inception_7/Inception-7"
 
 num_round = 1
 
@@ -62,25 +62,29 @@ inner = network.symbol.get_internals()
 inner_feature = inner['flatten_output']
 
 fea_ext = model.FeedForward(ctx=mx.cpu(),symbol=inner_feature,numpy_batch_size=bs,arg_params=network.arg_params,aux_params=network.aux_params,allow_extra_params=True)
+'''
 
-
-biz_ph = pd.read_csv('sample.csv')
+biz_ph = pd.read_csv('../data/train_photo_to_biz_ids.csv')
 
 ph = biz_ph['photo_id'].unique().tolist()
 
+train_label = pd.read_csv('../data/labels_cl_train.csv')
+
+train_ph = train_label['business_id'].unique().tolist()
  
 feat_holder = np.zeros([len(ph),2048])
 
-for num_ph,photo in enumerate(ph):
-    fp = './train_photos/'+str(photo)+'.jpg'
+for num_ph,photo in enumerate(biz_ph):
+    print (photo)
+    fp = '../data/train_photos/'+str(photo)+'.jpg'
     try:
-        feat_holder[num_ph,:]=fea_ext.predict(PreprocessImage(fp,show_img=False,invert_img=False))
+        #feat_holder[num_ph,:]=fea_ext.predict(PreprocessImage(fp,show_img=False,invert_img=False))
         print ("converted", fp, num_ph)
     except FileNotFoundError:
         pass
 print(feat_holder.shape)
 
-np.save('sample.npy',feat_holder)
+np.save('../data/train_processed.npy',feat_holder)
 
 end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
 
