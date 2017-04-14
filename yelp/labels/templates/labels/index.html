@@ -2,6 +2,106 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 {% if preprocess_i7 %}
-	<div> {{ preprocess_i7 }} </div>
-{% endif %}	
+        <div> {{ preprocess_i7 }} </div>
+{% endif %}
 
+<div id="head"> <h1> Restaurant Label Predictor </h1> </div>
+
+<div id = "left"> <h4> Enter the URL of the image. </h4>
+</div>
+
+<div id = "right"> <h4> The selected model. </h4></div>
+
+<div id = "image">
+        <form>
+                URL: <input id='url' type="text" name="url" value="url"><br>
+                <input id="submit" type="submit" value="Submit">
+        </form>
+
+        <h4> IMAGE!!! </h4>
+        {% if url %}
+        <div> {{url}} </div>
+        <img src="{% static "photos/newimg.jpg" %}">
+{% endif %}
+</div>
+
+<div id = "label">
+        <div style="height: 13%;"> Popular Labels!!!</div>
+        <div> 1 </div>
+        <div> 2 </div>
+        <div> 3 </div>
+        <div> 4 </div>
+        <div> 5 </div>
+        <div> 6 </div>
+        <div> 7 </div>
+        <div> 8 </div>
+        <div> 9 </div>
+
+</div>
+
+
+<style>
+
+body{
+
+                font-family:Arial,Helvetica,sans-serif;
+                background-color:white;
+                display:box;
+                margin:8px;
+                text-align: center;
+
+        }
+
+#head{
+                background-color:#F7A987;
+        }
+
+#left{
+                width: 45%;
+                height: 10%;
+                background-color:#F7A987;
+                float:left;
+        }
+
+#image{
+                width: 45%;
+                height: 70%;
+                float:left;
+        }
+
+#right{
+                width: 45%;
+                height: 10%;
+                float:right;
+	}
+
+#label{
+		width: 45%;
+		height: 70%;
+		float:right;
+	}
+	
+</style>
+
+<script>
+
+		var form = document.querySelector('#submit').onsubmit = function (evt) {
+			evt.preventDefault();
+				var urlo = document.getElementById("url");
+				var url = urlo.value;
+				$.ajax({
+					type: "POST",  
+					data: {
+						url:url,		
+					},
+					success: function(data) {
+						document.getElementsByTagName('html')[0].innerHTML = data 
+						
+					},
+					error: function(xhr, textStatus, errorThrown) {
+						alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+					}
+				});
+		};
+
+</script>

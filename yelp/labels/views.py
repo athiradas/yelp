@@ -13,28 +13,22 @@ The inception net weights and architecture need to be downloaded from here: http
 '''
 
 
-import mxnet as mx
-import logging
-import numpy as np
-from skimage import io, transform
-from mxnet import model
-import pandas as pd
-import time
-import datetime
-
 from django.http import HttpResponse
-from .models import Preprocess
+from .models import feature_extraction, load_image
 from django.template import loader, RequestContext
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
-bs = 1
 
 def index(request):
-        preprocess = Preprocess()
-        preprocess_iv7 = preprocess.inception_7()
-        template = loader.get_template('labels/index.html')
-        context = {'preprocess_i7':preprocess_i7}
-        return HttpResponse(template.render(context, request))
+                template = loader.get_template('labels/index.html')
+                if request.method == 'GET':
+                        url = request.GET.get('url', True)
+                        if url == True:
+                                url = None #"Enter URL of the image"
+                        fe = feature_extraction()
+                        li = load_image()
+                        li.from_url(url)
+                        preprocess_i7 = 'Not a new url'#fe.inception_7()
+                        context = {'preprocess_i7':preprocess_i7, 'url': url}
+                        return HttpResponse(template.render(context, request))
+
 

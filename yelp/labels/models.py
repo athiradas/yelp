@@ -18,7 +18,7 @@ Assuming the script is run on a GPU, it takes close to 6 hours to complete (This
 The output files are close to 4GB each for train and test
 The inception net weights and architecture need to be downloaded from here: https://github.com/dmlc/mxnet-model-gallery/blob/master/imagenet-1k-inception-v3.md
 '''
-
+import urllib.request
 
 import mxnet as mx
 import logging
@@ -28,13 +28,19 @@ from mxnet import model
 import pandas as pd
 import time
 import datetime
-import os 
+import os
 import glob
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 bs = 1
+
+
+class load_image:
+        def from_url(self, url):
+                urllib.request.urlretrieve(url, os.path.join(settings.BASE_DIR+'/labels/static/photos/newimg.jpg'))
+
 
 class Preprocess(models.Model):	
 	def PreprocessImage(img_path, show_img=False,invert_img=False):
@@ -81,7 +87,7 @@ class feature_extraction:
 		images = self.get_imlist(img_path)
 		img_count = len(glob.glob1(img_path,"*.jpg"))		
 		feat_holder = np.zeros([img_count,2048])
-		for num_ph, image in enumerate(images):
+		for image in enumerate(images):
 					'''try:
 						feat_holder[img_count,:]=fea_ext.predict(preprocess.PreprocessImage(fp))
 					except FileNotFoundError:
@@ -105,8 +111,9 @@ class feature_extraction:
 					feat_holder[num_ph,:]=fea_ext.predict(img_process)
 					#img_process = preprocess.PreprocessImage(str(image))
 					
-		np.save('new.npy',feat_holder)
+		np.save('sample.npy',feat_holder)
 		end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
 		return (start_time, end_time)
 		
+
 
