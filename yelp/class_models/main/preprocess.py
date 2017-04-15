@@ -64,11 +64,11 @@ inner_feature = inner['flatten_output']
 fea_ext = model.FeedForward(ctx=mx.cpu(),symbol=inner_feature,numpy_batch_size=bs,arg_params=network.arg_params,aux_params=network.aux_params,allow_extra_params=True)
 '''
 
-biz_ph = pd.read_csv('../data/train_photo_to_biz_ids.csv')
+biz_ph = pd.read_csv('../data/train_id.csv')
 
 ph = biz_ph['photo_id'].unique().tolist()
 
-train_label = pd.read_csv('../data/labels_cl_train.csv')
+train_label = pd.read_csv('../data/train_labels_cl.csv')
 
 train_ph = train_label['business_id'].unique().tolist()
  
@@ -76,9 +76,9 @@ feat_holder = np.zeros([len(ph),2048])
 
 for num_ph,photo in enumerate(biz_ph):
     print (photo)
-    fp = '../data/train_photos/'+str(photo)+'.jpg'
+    fp = '../data/train/'+str(photo)+'.jpg'
     try:
-        #feat_holder[num_ph,:]=fea_ext.predict(PreprocessImage(fp,show_img=False,invert_img=False))
+        feat_holder[num_ph,:]=fea_ext.predict(PreprocessImage(fp,show_img=False,invert_img=False))
         print ("converted", fp, num_ph)
     except FileNotFoundError:
         pass
