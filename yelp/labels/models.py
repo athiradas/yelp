@@ -38,14 +38,19 @@ bs = 1
 
 
 class load_image:
-        def from_url(self, url):
-                urllib.request.urlretrieve(url, os.path.join(settings.BASE_DIR+'/labels/static/photos/newimg.jpg'))
+	def from_url(self, url):
+		if url == None:
+			pass
+		else:
+			urllib.request.urlretrieve(url, os.path.join(settings.BASE_DIR+'/labels/static/photos/newimg.jpg'))
 
+			
 
-class Preprocess(models.Model):	
+class feature_extraction:
+
 	def PreprocessImage(img_path, show_img=False,invert_img=False):
-				#img = io.imread(str(img_path))
-				'''if(invert_img):
+				img = io.imread(str(img_path))
+				if(invert_img):
 					img = np.fliplr(img)
 				short_egde = min(img.shape[:2])
 				yy = int((img.shape[0] - short_egde) / 2)
@@ -62,11 +67,7 @@ class Preprocess(models.Model):
 				normed_img = sample - 128
 				normed_img /= 128.
 				return np.reshape(resized_img,(1,3,299,299)) #np.reshape(normed_img,(1,3,299,299))
-				'''
-				return (img_path)
-			
-
-class feature_extraction:
+				
 	def get_imlist(self, path):
 		#Returns a list of filenames for all jpg images in a directory. 
 
@@ -74,24 +75,17 @@ class feature_extraction:
   
 	def inception_7(self):
 		start_time =  datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
-		preprocess = Preprocess()
 		prefix = os.path.join(settings.BASE_DIR+"/labels/model/inception_7/Inception-7")
 		num_round = 1
 		network = model.FeedForward.load(prefix, num_round, ctx=mx.cpu(), numpy_batch_size=bs)
 		inner = network.symbol.get_internals()
 		inner_feature = inner['flatten_output']
 		fea_ext = model.FeedForward(ctx=mx.cpu(),symbol=inner_feature,numpy_batch_size=bs,arg_params=network.arg_params,aux_params=network.aux_params,allow_extra_params=True)
-		#biz_ph = pd.read_csv('sample.csv')
-		#ph = biz_ph['photo_id'].unique().tolist()	
 		img_path = os.path.join(settings.BASE_DIR+'/labels/static/photos/')
 		images = self.get_imlist(img_path)
 		img_count = len(glob.glob1(img_path,"*.jpg"))		
 		feat_holder = np.zeros([img_count,2048])
-		for image in enumerate(images):
-					'''try:
-						feat_holder[img_count,:]=fea_ext.predict(preprocess.PreprocessImage(fp))
-					except FileNotFoundError:
-						pass '''
+		for num_ph, image in enumerate(images):
 					img = io.imread(image)
 					short_egde = min(img.shape[:2])
 					yy = int((img.shape[0] - short_egde) / 2)
@@ -109,11 +103,12 @@ class feature_extraction:
 					normed_img /= 128.
 					img_process = np.reshape(resized_img,(1,3,299,299))
 					feat_holder[num_ph,:]=fea_ext.predict(img_process)
-					#img_process = preprocess.PreprocessImage(str(image))
-					
-		np.save('sample.npy',feat_holder)
+					#img_process = preprocess.PreprocessImage(str(image))				
+		np.save(os.path.join(settings.BASE_DIR+'/labels/static/photos/new.npy'),feat_holder)
 		end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
 		return (start_time, end_time)
+
+		return image
 		
 
 

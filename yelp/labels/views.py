@@ -27,7 +27,7 @@ def index(request):
                         fe = feature_extraction()
                         li = load_image()
                         li.from_url(url)
-                        preprocess_i7 = 'Not a new url'#fe.inception_7()
+                        preprocess_i7 = fe.inception_7()
                         context = {'preprocess_i7':preprocess_i7, 'url': url}
                         return HttpResponse(template.render(context, request))
 
