@@ -17,5 +17,15 @@ def clean_train():
         
     train = train.drop(['labels'],axis=1)  
     train.to_csv('../data/train_labels_cl.csv',index=0)
+
+    test = pd.read_csv('../data/test_labels.csv')
+    for i in range(9):
+        col_name = 'label_'+str(i)
+        test[col_name] = test['labels'].apply(lambda x: 1 if (str(i) in str(x)) else 0)
+
+    test = test.drop(['labels'],axis=1)
+    test.to_csv('../data/test_labels_cl.csv',index=0)
+
+
     
 clean_train()

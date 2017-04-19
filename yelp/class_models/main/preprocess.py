@@ -1,8 +1,7 @@
-#!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
-
 """
 Created on Mon Feb 27 17:23:46 2017
+
 @author: athir
 """
 
@@ -25,7 +24,9 @@ import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
 bs = 1
+
 def PreprocessImage(path, show_img=False,invert_img=False):
     img = io.imread(path)
     if(invert_img):
@@ -49,25 +50,62 @@ def PreprocessImage(path, show_img=False,invert_img=False):
     return np.reshape(normed_img,(1,3,299,299))
 
 start_time =  datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
+
 prefix = "model/inception-7/Inception-7"
+
 num_round = 1
+
 network = model.FeedForward.load(prefix, num_round, ctx=mx.cpu(), numpy_batch_size=bs)
+
 inner = network.symbol.get_internals()
+
 inner_feature = inner['flatten_output']
+
 fea_ext = model.FeedForward(ctx=mx.cpu(),symbol=inner_feature,numpy_batch_size=bs,arg_params=network.arg_params,aux_params=network.aux_params,allow_extra_params=True)
 
 
-biz_ph = pd.read_csv('../data/train_id.csv')
+# biz_ph = pd.read_csv('../data/train_id.csv')
+
+# ph = biz_ph['photo_id'].unique().tolist()
+
+# train_label = pd.read_csv('../data/train_labels_cl.csv')
+
+# train_ph = train_label['business_id'].unique().tolist()
+ 
+# feat_holder = np.zeros([len(ph),2048])
+
+# for num_ph,photo in enumerate(biz_ph):
+    # print (photo)
+    # fp = '../data/train/'+str(photo)+'.jpg'
+    # try:
+        # feat_holder[num_ph,:]=fea_ext.predict(PreprocessImage(fp,show_img=False,invert_img=False))
+        # print ("converted", fp, num_ph)
+    # except FileNotFoundError:
+        # pass
+# print(feat_holder.shape)
+
+# np.save('../data/train_processed.npy',feat_holder)
+
+# end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
+
+# print("start ", start_time, "end ", end_time)
+
+
+
+biz_ph = pd.read_csv('../data/test_id.csv')
 
 ph = biz_ph['photo_id'].unique().tolist()
 
-train_label = pd.read_csv('../data/train_labels_cl.csv')
+test_label = pd.read_csv('../data/test_labels_cl.csv')
+
+test_ph = test_label['business_id'].unique().tolist()
  
 feat_holder = np.zeros([len(ph),2048])
 
+
 for num_ph,photo in enumerate(ph):
     print (photo)
-    fp = '../data/train/'+str(photo)+'.jpg'
+    fp = '../data/test/'+str(photo)+'.jpg'
     try:
         feat_holder[num_ph,:]=fea_ext.predict(PreprocessImage(fp,show_img=False,invert_img=False))
         print ("converted", fp, num_ph)
@@ -75,8 +113,9 @@ for num_ph,photo in enumerate(ph):
         pass
 print(feat_holder.shape)
 
-np.save('../data/train_inception_7.npy',feat_holder)
+np.save('../data/test_processed.npy',feat_holder)
 
 end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
 
 print("start ", start_time, "end ", end_time)
+
