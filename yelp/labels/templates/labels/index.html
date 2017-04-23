@@ -1,9 +1,6 @@
 {% load static %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
-{% if preprocess_i7 %}
-        <div> {{ preprocess_i7 }} </div>
-{% endif %}
 
 <div id="head"> <h1> Restaurant Label Predictor </h1> </div>
 
@@ -21,21 +18,19 @@
         <h4> IMAGE!!! </h4>
         {% if url %}
         <div> {{url}} </div>
-        <img src="{% static "photos/newimg.jpg" %}">
+        <img src="{% static "photos/1234.jpg" %}">
 {% endif %}
 </div>
 
 <div id = "label">
         <div style="height: 13%;"> Popular Labels!!!</div>
-        <div> 1 </div>
-        <div> 2 </div>
-        <div> 3 </div>
-        <div> 4 </div>
-        <div> 5 </div>
-        <div> 6 </div>
-        <div> 7 </div>
-        <div> 8 </div>
-        <div> 9 </div>
+		{% if preprocess_i7 %}
+        <div> {{ preprocess_i7 }}</div>
+        <div> {{ preprocess_i7 }}</div>
+        <div> {{ preprocess_i7 }}</div>
+        <div> {{ preprocess_i7 }}</div>
+        <div> {{ preprocess_i7 }}</div>
+	{% endif %}
 
 </div>
 
@@ -81,6 +76,10 @@ body{
 		float:right;
 	}
 	
+img{
+height: 50%;
+width: 70%;
+}
 </style>
 
 <script>

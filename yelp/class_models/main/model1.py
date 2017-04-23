@@ -122,7 +122,7 @@ Here, I've used 0.48 as the threshold
 
 cv = 1
 
-submit = 0
+submit = 1
 
 num_cv = 5
 
@@ -211,3 +211,139 @@ for i in range(dataset_blend_train2.shape[0]):
 print('Fscore on this model:',np.mean(fsc))
 
 print('time taken for cross validation',time.time()-start_time)
+
+
+'''
+Part3: Training and Generating submissions on the Test Set
+Now that we have tuned the model parameters using cross validation, we will go ahead
+and use these parameters to build 9 binary classification models
+Set the submit variable to 1 only if you need to run this part, since in most cases we will only be
+playing with the cross validation part
+Also, we intend to use this model in an ensemble, we will store the predictions on the test
+set, and use them later as features for the ensemble model
+'''
+
+if(submit):
+    param['subsample'] = param['subsample']*0.8
+    train_to_biz = pd.read_csv('../data/train_id.csv')
+
+    train_image_features = np.load('../data/train_inception_7.npy',mmap_mode='r')
+    
+    uni_bus = train_to_biz['business_id'].unique()
+    
+    coll_arr = np.zeros([len(uni_bus),2048])
+    
+    for nb,ub in enumerate(uni_bus):
+        if(nb%1000==0):
+            print(nb)
+        tbz = np.array(train_to_biz['business_id']==ub,dtype=bool)
+        x1 = np.array(train_image_features[tbz,:])
+        x1 = np.mean(x1,axis=0)
+        x1 = x1.reshape([1,2048])
+        coll_arr[nb,:] = x1
+        
+    biz_features = pd.DataFrame(uni_bus,columns=['business_id'])
+    
+    coll_arr = pd.DataFrame(coll_arr)
+    
+    frames = [biz_features,coll_arr]
+    
+    biz_features = pd.concat(frames,axis=1)
+    
+    del train_to_biz,train_image_features,coll_arr,frames
+    
+    model_dict = {}
+    
+    for nb,lb in enumerate(labels):
+        train_cl = pd.read_csv('../data/train_labels_cl.csv')
+    
+        train_cl = dict(np.array(train_cl[['business_id',lb]]))
+    
+        biz_features['lb'] = biz_features['business_id'].apply(lambda x: train_cl[x])
+            
+        
+        df_train_values = biz_features['lb']
+        
+        df_train_features = biz_features.drop(['business_id','lb'],axis=1)
+        
+        xg_train = xgb.DMatrix(df_train_features, label=df_train_values)
+
+        bst = xgb.train(param, xg_train,iter_label[lb])
+
+        model_dict[lb] = bst
+        
+        df_train_features = None
+        
+        df_test_features = None
+        
+        xg_train = None
+    
+    print (model_dict)
+    # Predict on the test set
+    
+    test_to_biz = pd.read_csv('../data/test_id.csv')
+
+    test_image_features = np.load('../data/test_inception_7.npy',mmap_mode='r')
+     
+    test_image_id = list(np.array(test_to_biz['photo_id'].unique()))
+     
+    uni_bus = test_to_biz['business_id'].unique()
+     
+    coll_arr = np.zeros([len(uni_bus),2048])
+     
+    for nb,ub in enumerate(uni_bus):
+        if(nb%1000==0):
+            print(nb)
+        image_ids = test_to_biz[test_to_biz['business_id']==ub]['photo_id'].tolist()  
+        image_index = [test_image_id.index(x) for x in image_ids]
+        features = test_image_features[image_index]
+        x1 = np.mean(features,axis=0)
+        x1 = x1.reshape([1,2048])
+        coll_arr[nb,:] = x1
+
+        
+    biz_features = pd.DataFrame(uni_bus,columns=['business_id'])
+    
+    coll_arr = pd.DataFrame(coll_arr)
+    
+    frames = [biz_features,coll_arr]
+    
+    biz_features = pd.concat(frames,axis=1)
+    
+    del coll_arr,frames,test_to_biz,test_image_features,test_image_id,image_ids,image_index,features
+    
+    result = np.zeros([biz_features.shape[0],9])
+    
+    for nb,lb in enumerate(labels):
+        
+        print('predicting',lb)
+        df_test_features = biz_features.drop(['business_id'],axis=1)
+        
+        bst = model_dict[lb]
+        
+        yprob = bst.predict(xgb.DMatrix(df_test_features))[:,1]
+        
+        result[:,nb] = yprob
+    
+    np.save('../data/Model1_Full_result.npy',result)
+    
+    result = np_thresh(result,0.480)
+    
+    bid = np.array(biz_features['business_id'])
+    
+    fin = {}
+    
+    for i in range(result.shape[0]):
+        x = result[i,:]
+        li = [((q)) for q in range(9) if x[q]==1]
+        fin[bid[i]] = li
+        
+    for j in fin.keys():
+        fin[j] = ' '.join(str(e) for e in fin[j])
+    
+    x1 = pd.DataFrame(biz_features['business_id'])
+    
+    x1['labels'] = x1['business_id'].apply(lambda x: fin[x] if x in fin.keys() else '0')
+    
+    x1.to_csv('../data/result1.csv',index=0)
+    print ("Data Saved")

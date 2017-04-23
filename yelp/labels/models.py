@@ -42,7 +42,16 @@ class load_image:
 		if url == None:
 			pass
 		else:
-			urllib.request.urlretrieve(url, os.path.join(settings.BASE_DIR+'/labels/static/photos/newimg.jpg'))
+			urllib.request.urlretrieve(url, os.path.join(settings.BASE_DIR+'/labels/static/photos/1234.jpg'))
+			import csv
+
+			f = open('new_id.csv', 'wt')
+			try:
+				writer = csv.writer(f)
+				writer.writerow( ('business_id', 'photo_id') )
+				writer.writerow( ('9999', '1234') )
+			finally:
+				f.close()
 
 			
 
@@ -105,10 +114,101 @@ class feature_extraction:
 					feat_holder[num_ph,:]=fea_ext.predict(img_process)
 					#img_process = preprocess.PreprocessImage(str(image))				
 		np.save(os.path.join(settings.BASE_DIR+'/labels/static/photos/new.npy'),feat_holder)
+		
+		
+		
+		
+		for nb,lb in enumerate(labels):
+			train_cl = pd.read_csv('train_labels_cl.csv')
+		
+			train_cl = dict(np.array(train_cl[['business_id',lb]]))
+		
+			biz_features['lb'] = biz_features['business_id'].apply(lambda x: train_cl[x])
+				
+			
+			df_train_values = biz_features['lb']
+			
+			df_train_features = biz_features.drop(['business_id','lb'],axis=1)
+			
+			xg_train = xgb.DMatrix(df_train_features, label=df_train_values)
+
+			bst = xgb.train(param, xg_train,iter_label[lb])
+
+			model_dict[lb] = bst
+			
+			df_train_features = None
+			
+			df_test_features = None
+			
+			xg_train = None
+
+		
+		
+		
+		
+		
+		
+		
+		
+		labels = ['label_'+str(i) for i in range(9)]
+		
+		test_to_biz = pd.read_csv('new_id.csv')
+
+		test_image_features = np.load('new.npy',mmap_mode='r')
+		 
+		test_image_id = list(np.array(test_to_biz['photo_id'].unique()))
+		 
+		uni_bus = test_to_biz['business_id'].unique()
+		 
+		coll_arr = np.zeros([len(uni_bus),2048])
+		 
+		for nb,ub in enumerate(uni_bus):
+			if(nb%1000==0):
+				print(nb)
+			image_ids = test_to_biz[test_to_biz['business_id']==ub]['photo_id'].tolist()  
+			image_index = [test_image_id.index(x) for x in image_ids]
+			features = test_image_features[image_index]
+			x1 = np.mean(features,axis=0)
+			x1 = x1.reshape([1,2048])
+			coll_arr[nb,:] = x1
+
+			
+		biz_features = pd.DataFrame(uni_bus,columns=['business_id'])
+		
+		coll_arr = pd.DataFrame(coll_arr)
+		
+		frames = [biz_features,coll_arr]
+		
+		biz_features = pd.concat(frames,axis=1)
+				
+		coll_arr = pd.DataFrame(coll_arr)
+    
+		frames = [biz_features,coll_arr]
+		
+		biz_features = pd.concat(frames,axis=1)
+		
+		del coll_arr,frames,test_to_biz,test_image_features,test_image_id,image_ids,image_index,features
+		model_dict = {}
+		
+		result = np.zeros([biz_features.shape[0],9])
+		
+		for nb,lb in enumerate(labels):
+			
+			print('predicting',lb)
+			df_test_features = biz_features.drop(['business_id'],axis=1)
+			
+			bst = model_dict[lb]
+			
+			yprob = bst.predict(xgb.DMatrix(df_test_features))[:,1]
+			
+			result[:,nb] = yprob
+		
 		end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
-		return (start_time, end_time)
+		
+		return (self.get_imlist(os.path.join(settings.BASE_DIR+'/labels/static/photos/')))
 
 		return image
 		
+
 
 
