@@ -30,6 +30,10 @@ import time
 import datetime
 import os
 import glob
+import xgboost as xgb
+
+from sklearn.cluster import MiniBatchKMeans
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -45,11 +49,11 @@ class load_image:
 			urllib.request.urlretrieve(url, os.path.join(settings.BASE_DIR+'/labels/static/photos/1234.jpg'))
 			import csv
 
-			f = open('new_id.csv', 'wt')
+			f = open(os.path.join(settings.BASE_DIR+'/labels/static/photos/new_id.csv'), 'wt')
 			try:
 				writer = csv.writer(f)
 				writer.writerow( ('business_id', 'photo_id') )
-				writer.writerow( ('9999', '1234') )
+				writer.writerow( ('0', '1234') )
 			finally:
 				f.close()
 
@@ -117,11 +121,86 @@ class feature_extraction:
 		
 		
 		
+		labels = ['label_'+str(i) for i in range(9)]
+		
+		param = {}
+		param['objective'] = 'multi:softprob'
+		param['eta'] = 0.1
+		param['max_depth'] = 3
+		param['subsample'] = 0.6
+		param['silent'] = 1
+		param['nthread'] = 4
+		param['eval_metric'] = "mlogloss"
+		num_round = 100
+		param['num_class'] = 2
+
+
+
+		iter_label = {'label_1': 6, 'label_2': 1, 'label_6': 11, 'label_5': 12, 'label_3': 3, 'label_7': 12, 'label_0': 14, 'label_4': 19, 'label_8': 10}
+		
+		param['subsample'] = param['subsample']*0.8
+		train_to_biz = pd.read_csv(os.path.join(settings.BASE_DIR+'/labels/static/data/train_id.csv'))
+
+
+		train_image_features = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/train_inception_7.npy'),mmap_mode='r')
+
+		
+
+		uni_bus = train_to_biz['business_id'].unique()
+
+		
+
+		coll_arr = np.zeros([len(uni_bus),2048])
+
+		
+
+		for nb,ub in enumerate(uni_bus):
+
+			if(nb%1000==0):
+
+				print(nb)
+			tbz = np.array(train_to_biz['business_id']==ub,dtype=bool)
+
+			x1 = np.array(train_image_features[tbz,:])
+
+			x1 = np.mean(x1,axis=0)
+
+			x1 = x1.reshape([1,2048])
+
+			coll_arr[nb,:] = x1
+
+			
+
+		biz_features = pd.DataFrame(uni_bus,columns=['business_id'])
+
+		
+
+		coll_arr = pd.DataFrame(coll_arr)
+
+		
+
+		frames = [biz_features,coll_arr]
+
+		
+
+		biz_features = pd.concat(frames,axis=1)
+
+		
+
+		#del train_to_biz,train_image_features,coll_arr,frames
+
+		
+
+		
+
+		model_dict = {}
+
 		
 		for nb,lb in enumerate(labels):
-			train_cl = pd.read_csv('train_labels_cl.csv')
+			train_cl = pd.read_csv(os.path.join(settings.BASE_DIR+'/labels/static/photos/train_labels_cl.csv'))
 		
 			train_cl = dict(np.array(train_cl[['business_id',lb]]))
+
 		
 			biz_features['lb'] = biz_features['business_id'].apply(lambda x: train_cl[x])
 				
@@ -142,53 +221,64 @@ class feature_extraction:
 			
 			xg_train = None
 
-		
-		
-		
-		
-		
-		
-		
-		
-		labels = ['label_'+str(i) for i in range(9)]
-		
-		test_to_biz = pd.read_csv('new_id.csv')
-
-		test_image_features = np.load('new.npy',mmap_mode='r')
-		 
-		test_image_id = list(np.array(test_to_biz['photo_id'].unique()))
-		 
-		uni_bus = test_to_biz['business_id'].unique()
-		 
-		coll_arr = np.zeros([len(uni_bus),2048])
-		 
-		for nb,ub in enumerate(uni_bus):
-			if(nb%1000==0):
-				print(nb)
-			image_ids = test_to_biz[test_to_biz['business_id']==ub]['photo_id'].tolist()  
-			image_index = [test_image_id.index(x) for x in image_ids]
-			features = test_image_features[image_index]
-			x1 = np.mean(features,axis=0)
-			x1 = x1.reshape([1,2048])
-			coll_arr[nb,:] = x1
+			
 
 			
+		test_to_biz = pd.read_csv(os.path.join(settings.BASE_DIR+'/labels/static/photos/new_id.csv'))
+
+
+		test_image_features = np.load( os.path.join(settings.BASE_DIR+'/labels/static/photos/new.npy'),mmap_mode='r')
+
+		 
+
+		test_image_id = list(np.array(test_to_biz['photo_id'].unique()))
+
+		 
+
+		uni_bus = test_to_biz['business_id'].unique()
+
+		 
+
+		coll_arr = np.zeros([len(uni_bus),2048])
+
+		 
+
+		for nb,ub in enumerate(uni_bus):
+			if(nb%1000==0):
+
+				print(nb)
+
+			image_ids = test_to_biz[test_to_biz['business_id']==ub]['photo_id'].tolist()  
+
+			image_index = [test_image_id.index(x) for x in image_ids]
+
+			features = test_image_features[image_index]
+
+			x1 = np.mean(features,axis=0)
+
+			x1 = x1.reshape([1,2048])
+
+			coll_arr[nb,:] = x1
+
+
+			
+
 		biz_features = pd.DataFrame(uni_bus,columns=['business_id'])
+
 		
+
 		coll_arr = pd.DataFrame(coll_arr)
+
 		
+
 		frames = [biz_features,coll_arr]
+
 		
+
 		biz_features = pd.concat(frames,axis=1)
-				
-		coll_arr = pd.DataFrame(coll_arr)
-    
-		frames = [biz_features,coll_arr]
+
 		
-		biz_features = pd.concat(frames,axis=1)
-		
-		del coll_arr,frames,test_to_biz,test_image_features,test_image_id,image_ids,image_index,features
-		model_dict = {}
+		#del coll_arr,frames,test_image_features,test_image_id,image_ids,image_index,features
 		
 		result = np.zeros([biz_features.shape[0],9])
 		
@@ -203,12 +293,216 @@ class feature_extraction:
 			
 			result[:,nb] = yprob
 		
-		end_time = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
+		np.save(os.path.join(settings.BASE_DIR+'/labels/static/data/Model1_Full_result.npy'),result)
+
+
+
 		
-		return (self.get_imlist(os.path.join(settings.BASE_DIR+'/labels/static/photos/')))
+###############MODEL 2 ############################
 
-		return image
+#train_image_features = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/train_inception_7.npy'),mmap_mode = 'r')
+
+		test_image_features = np.load(os.path.join(settings.BASE_DIR+'/labels/static/photos/new.npy'),mmap_mode = 'r')
+
+		tr_ts = np.vstack((train_image_features,test_image_features))
+
+		np.save( os.path.join(settings.BASE_DIR+'/labels/static/photos/train_test_kmn.npy'),tr_ts)
+		
+		train_image_features = np.load(os.path.join(settings.BASE_DIR+'/labels/static/photos/train_test_kmn.npy'),mmap_mode = 'r')
+		
+		
 		
 
+		for num_cluster in ([2,3,4,5]):
+		
+			kmn_holder = MiniBatchKMeans(n_clusters=num_cluster)
+
+			kmn = kmn_holder.fit_predict(train_image_features[:,:])
+
+			kmn_train = kmn[:57870]
+
+			kmn_test = kmn[57870:]
+			
+			coll_arr = np.zeros([len(uni_bus),(2048*num_cluster)])
+			for nb,lb in enumerate(labels):
+				
+				print('predicting',lb)
+				df_test_features = biz_features.drop(['business_id'],axis=1)
+				
+				bst = model_dict[lb]								
+				bst.save_model('model1')
+				bst = xgb.Booster(param)
+
+				bst.load_model('model1')
 
 
+				yprob = bst.predict(xgb.DMatrix(df_test_features))[:,1]
+
+				
+
+				result[:,nb] = yprob	
+
+				np.save(os.path.join(settings.BASE_DIR+'/labels/static/data/Model1_Full_result.npy'),result)
+
+				
+
+			for nb,ub in enumerate(uni_bus):
+
+				image_ids = test_to_biz[test_to_biz['business_id']==ub]['photo_id'].tolist()  
+
+				image_index = [test_image_id.index(x) for x in image_ids]
+
+				features = test_image_features[image_index]
+
+				l1 = kmn_test[image_index]
+
+				for kn in range(num_cluster):
+
+					x2 = features[l1==kn]
+
+					x2 = np.mean(x2,axis=0)
+
+					x2= x2.reshape([1,2048])
+
+					if(np.isnan(np.sum(x2))):
+
+						coll_arr[nb,(2048*(kn)):(2048*(kn+1))] = np.zeros([1,2048])
+
+					else:
+
+						coll_arr[nb,(2048*(kn)):(2048*(kn+1))] = x2
+
+				
+
+			biz_features = pd.DataFrame(uni_bus,columns=['business_id'])
+
+			
+
+			coll_arr = pd.DataFrame(coll_arr)
+
+			
+
+			frames = [biz_features,coll_arr]
+
+			
+
+			biz_features = pd.concat(frames,axis=1)
+
+			
+
+			result = np.zeros([biz_features.shape[0],9])
+			
+			for nb,lb in enumerate(labels):
+				
+				print('predicting',lb, num_cluster)
+
+				df_test_features = biz_features.drop(['business_id'],axis=1)
+
+				
+
+				bst = model_dict[lb]
+
+								
+
+				bst.save_model('model2')
+
+				bst = xgb.Booster(param)
+
+				bst.load_model('model2')
+
+
+				yprob = bst.predict(xgb.DMatrix(df_test_features))[:,1]
+
+
+								
+
+				#preds = bst.predict(dtest)
+
+				
+
+				result[:,nb] = yprob
+
+			
+
+			np.save(os.path.join(settings.BASE_DIR+'/labels/static/data/Model2_Full_'+str(num_cluster)+'_result.npy') ,result)
+
+			
+
+#################FINAL MODEL ##################
+
+
+		blend1 = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/Model1_Full.npy'))
+
+    
+
+		blend2 = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/Model2_Full_2.npy'))
+
+		
+
+		blend3 = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/Model2_Full_3.npy'))
+
+		
+
+		blend4 = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/Model2_Full_4.npy'))
+
+		
+
+		blend5 = np.load(os.path.join(settings.BASE_DIR+'/labels/static/data/Model2_Full_5.npy'))
+
+		
+		x1 = np.hstack((blend4,blend2,blend3,blend5))
+
+		x1 = pd.DataFrame(x1)
+
+		
+
+		x1['business_id'] = uni_bus
+
+		
+
+		
+
+		for nb,lb in enumerate(labels):
+
+			train_cl = pd.read_csv(os.path.join(settings.BASE_DIR+'/labels/static/data/train_labels_cl.csv'))
+
+		
+
+			train_cl = dict(np.array(train_cl[['business_id',lb]]))
+
+		
+
+			x1[lb] = x1['business_id'].apply(lambda x: train_cl[x])
+
+			
+
+		df_train_values = np.array(x1[labels])
+
+    
+
+		df_train_features = np.array(x1.drop(other_cols,axis=1))
+
+
+		bst = get_net(df_train_features.shape[1],df_train_values.shape[1])
+
+			
+
+		bst.fit(df_train_features,df_train_values,batch_size=30,nb_epoch=26)
+
+		
+
+		df_train_features = None
+
+		
+
+		df_test_features = None
+
+		
+
+		xg_train = None
+
+		
+
+		return ('All is well!!!!!!!!!!!')
+
+		

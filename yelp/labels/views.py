@@ -19,16 +19,17 @@ from django.template import loader, RequestContext
 
 
 def index(request):
-                template = loader.get_template('labels/index.html')
-                if request.method == 'GET':
-                        url = request.GET.get('url', True)
-                        if url == True:
-                                url = None #"Enter URL of the image"
-                        fe = feature_extraction()
-                        li = load_image()
-                        li.from_url(url)
-                        preprocess_i7 = fe.inception_7()
-                        context = {'preprocess_i7':preprocess_i7, 'url': url}
-                        return HttpResponse(template.render(context, request))
-
-
+		template = loader.get_template('labels/index.html')
+		if request.method == 'GET':
+			url = request.GET.get('url', True)
+			if url == True:
+				url = None #"Enter URL of the image"
+				context = {'preprocess_i7':'Welcome to Restaurant Predication Application', 'url': url}
+				return HttpResponse(template.render(context, request))
+			else:
+				fe = feature_extraction()
+				li = load_image()
+				li.from_url(url)
+				preprocess_i7 = fe.inception_7()
+				context = {'preprocess_i7':preprocess_i7, 'url': url}
+				return HttpResponse(template.render(context, request))
