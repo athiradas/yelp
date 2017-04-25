@@ -19,17 +19,33 @@ from django.template import loader, RequestContext
 
 
 def index(request):
-		template = loader.get_template('labels/index.html')
-		if request.method == 'GET':
+	template = loader.get_template('labels/index.html')
+	if request.method == 'GET':
 			url = request.GET.get('url', True)
 			if url == True:
-				url = None #"Enter URL of the image"
-				context = {'preprocess_i7':'Welcome to Restaurant Predication Application', 'url': url}
-				return HttpResponse(template.render(context, request))
+					url = None #"Enter URL of the image"
+					return HttpResponse(template.render(request))
 			else:
-				fe = feature_extraction()
 				li = load_image()
 				li.from_url(url)
-				preprocess_i7 = fe.inception_7()
-				context = {'preprocess_i7':preprocess_i7, 'url': url}
+				fe = feature_extraction()
+				label_prob = fe.inception_7()
+				label = {}
+				print (label_prob)
+				label["Good for Lunch"] = label_prob[0][0]
+				label["Good for Dinner"] = label_prob[0][1]
+				label["Takes Reservations"] = label_prob[0][2]
+				label["Outdoor Seating"] = label_prob[0][3]
+				label["Restaurant is Expensive"] = label_prob[0][4]
+				label["Has Alcohol"] = label_prob[0][5]
+				label["Has Table Service"] = label_prob[0][6]
+				label["Ambience is Classy"] = label_prob[0][7]
+				label["Good for Kids"] = label_prob[0][8]
+				
+				true_label = {k: v for k, v in label.items() if v > 0.43}
+				context = {'true_label':true_label, 'url': url}
 				return HttpResponse(template.render(context, request))
+
+
+
+

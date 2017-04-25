@@ -7,7 +7,7 @@
 <div id = "left"> <h4> Enter the URL of the image. </h4>
 </div>
 
-<div id = "right"> <h4> The selected model. </h4></div>
+<div id = "right"> <h4> Popular Labels!!! </h4></div>
 
 <div id = "image">
         <form>
@@ -23,53 +23,43 @@
 </div>
 
 <div id = "label">
-        <div style="height: 13%;"> Popular Labels!!!</div>
-		{% if preprocess_i7 %}
-        <div> {{ preprocess_i7 }}</div>
-        <div> {{ preprocess_i7 }}</div>
-        <div> {{ preprocess_i7 }}</div>
-        <div> {{ preprocess_i7 }}</div>
-        <div> {{ preprocess_i7 }}</div>
+		{% if true_label %}
+        {% for label in true_label %}
+		  <div>{{ label }}</div>
+		{% endfor %}
 	{% endif %}
 
 </div>
 
 
 <style>
-
 body{
-
                 font-family:Arial,Helvetica,sans-serif;
                 background-color:white;
                 display:box;
                 margin:8px;
                 text-align: center;
-
         }
-
 #head{
                 background-color:#F7A987;
         }
-
 #left{
                 width: 45%;
                 height: 10%;
                 background-color:#F7A987;
                 float:left;
         }
-
 #image{
                 width: 45%;
                 height: 70%;
                 float:left;
         }
-
 #right{
                 width: 45%;
                 height: 10%;
                 float:right;
+				background-color:#F7A987;
 	}
-
 #label{
 		width: 45%;
 		height: 70%;
@@ -83,7 +73,6 @@ width: 70%;
 </style>
 
 <script>
-
 		var form = document.querySelector('#submit').onsubmit = function (evt) {
 			evt.preventDefault();
 				var urlo = document.getElementById("url");
@@ -102,5 +91,4 @@ width: 70%;
 					}
 				});
 		};
-
 </script>
