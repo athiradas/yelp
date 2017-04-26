@@ -32,18 +32,19 @@ def index(request):
 				label_prob = fe.inception_7()
 				label = {}
 				print (label_prob)
-				label["Good for Lunch"] = label_prob[0][0] * 100
-				label["Good for Dinner"] = label_prob[0][1] * 100
-				label["Takes Reservations"] = label_prob[0][2] * 100
-				label["Outdoor Seating"] = label_prob[0][3] * 100
-				label["Restaurant is Expensive"] = label_prob[0][4] * 100
-				label["Has Alcohol"] = label_prob[0][5] * 100
-				label["Has Table Service"] = label_prob[0][6] * 100
-				label["Ambience is Classy"] = label_prob[0][7] * 100
-				label["Good for Kids"] = label_prob[0][8] * 100
+				label["Good for Lunch"] = label_prob[0][0][0] * 100
+				label["Good for Dinner"] = label_prob[0][0][1] * 100
+				label["Takes Reservations"] = label_prob[0][0][2] * 100
+				label["Outdoor Seating"] = label_prob[0][0][3] * 100
+				label["Restaurant is Expensive"] = label_prob[0][0][4] * 100
+				label["Has Alcohol"] = label_prob[0][0][5] * 100
+				label["Has Table Service"] = label_prob[0][0][6] * 100
+				label["Ambience is Classy"] = label_prob[0][0][7] * 100
+				label["Good for Kids"] = label_prob[0][0][8] * 100
 				
 				true_label = {k: v for k, v in label.items() if v > 43}
-				context = {'true_label':true_label, 'url': url}
+				similar_images = label_prob[1]
+				context = {'true_label':true_label,'similar_images':similar_images, 'url': url}
 				print (label)
 				return HttpResponse(template.render(context, request))
 

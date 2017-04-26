@@ -8,7 +8,6 @@ from django.conf import settings
 # -*- coding: utf-8 -*-
 """
 Created on Mon Feb 27 17:23:46 2017
-
 @author: athir
 """
 
@@ -469,6 +468,22 @@ class feature_extraction:
 			x1 = pd.DataFrame(x1['business_id'])
 			
 			x1['labels'] = x1['business_id'].apply(lambda x: fin[x] if x in fin.keys() else '0')
-		
-		return (result)
+			
+
+			train_label = pd.read_csv(os.path.join(settings.BASE_DIR+'/labels/static/data/train_labels.csv'))
+
+			train_to_biz = pd.read_csv(os.path.join(settings.BASE_DIR+'/labels/static/data/train_id.csv'))
+
+
+			train_label['desired'] = train_label['labels'].str.contains('4' and '1' and '2')
+			desired_businesses = train_label[train_label.desired==True].business_id.tolist()
+			desired_photos = train_to_biz[train_to_biz.business_id.isin(desired_businesses)].photo_id.tolist()
+
+			num_images_for_show = 5
+			photos_to_show = np.random.choice(desired_photos,num_images_for_show**2)
+			photo_reco = list()
+			for x in range(num_images_for_show**2):
+				print (photos_to_show[x])
+				photo_reco.append(photos_to_show[x])
+		return (result, photo_reco)
 		
