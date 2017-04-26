@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.conf import settings
 
-# Create your models here.
+# Create your model models here.
 
 # -*- coding: utf-8 -*-
 """
@@ -19,6 +19,10 @@ The output files are close to 4GB each for train and test
 The inception net weights and architecture need to be downloaded from here: https://github.com/dmlc/mxnet-model-gallery/blob/master/imagenet-1k-inception-v3.md
 '''
 import urllib.request
+
+import random
+
+
 
 import mxnet as mx
 import logging
@@ -46,6 +50,8 @@ import tensorflow as tf
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
+
 
 bs = 1
 
@@ -117,6 +123,12 @@ class feature_extraction:
 		return [os.path.join(path,f) for f in os.listdir(path) if f.endswith('.jpg')]
   
 	def inception_7(self):
+		random.seed(42)
+		np.random.seed(100)
+		tf.set_random_seed(1)
+		
+
+
 		start_time =  datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') 
 		prefix = os.path.join(settings.BASE_DIR+"/labels/model/inception_7/Inception-7")
 		num_round = 1
@@ -163,7 +175,7 @@ class feature_extraction:
 		param['eval_metric'] = "mlogloss"
 		num_round = 100
 		param['num_class'] = 2
-
+		param['seed']=0
 
 		iter_label = {'label_1': 6, 'label_2': 1, 'label_6': 11, 'label_5': 12, 'label_3': 3, 'label_7': 12, 'label_0': 14, 'label_4': 19, 'label_8': 10}
 		

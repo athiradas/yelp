@@ -1,57 +1,49 @@
 {% load static %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet">
 
+<div id="head"> <h1 class="logo"> Restaurant Label Predictor </h1> </div>
 
-<div id="head"> <h1> Restaurant Label Predictor </h1> </div>
-
-<div id = "left"> <h4> Enter the URL of the image. </h4>
+<div class="url-container">
+	<form>
+		<input id='url' class="url-box" type="text" name="url"  placeholder="Please enter the URL of the image here">
+		<input id="submit" class="submit-button" type="submit" value="Submit">
+	</form>
 </div>
-
-<div id = "right"> <h4> Popular Labels!!! </h4></div>
-
+<!--<div id = "right"> <h4> Popular Labels!!! </h4></div>-->
+<div class="results">
 <div id = "image">
-        <form>
-                URL: <input id='url' type="text" name="url" value="url"><br>
-                <input id="submit" type="submit" value="Submit">
-        </form>
-
-        <h4> IMAGE!!! </h4>
         {% if url %}
-        <div> {{url}} </div>
+        <!--<div> {{url}} </div>-->
         <img src="{% static "photos/1234.jpg" %}">
 {% endif %}
 </div>
 
-<div id = "label">
+<ul id = "label">
 		{% if true_label %}
-        {% for label in true_label %}
-		  <div>{{ label }}</div>
+		{% for key, value in true_label.items %}
+			<li
+				style = "min-width: {{ value }}%; white-space: nowrap; text-align: left;" >
+				{{ key }}    -    {{ value|floatformat:"0" }} % 
+			</li>
 		{% endfor %}
 	{% endif %}
-
+</ul>
 </div>
 
 
 <style>
-body{
-                font-family:Arial,Helvetica,sans-serif;
-                background-color:white;
-                display:box;
-                margin:8px;
-                text-align: center;
-        }
-#head{
-                background-color:#F7A987;
-        }
+a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,canvas,caption,center,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;padding:0;border:0;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
+}
 #left{
                 width: 45%;
                 height: 10%;
                 background-color:#F7A987;
                 float:left;
+				
         }
 #image{
-                width: 45%;
-                height: 70%;
+                width: 200px;
                 float:left;
         }
 #right{
@@ -61,15 +53,11 @@ body{
 				background-color:#F7A987;
 	}
 #label{
-		width: 45%;
-		height: 70%;
+		width: calc(100% - 220px);
 		float:right;
+		margin-top: 50px;
 	}
-	
-img{
-height: 50%;
-width: 70%;
-}
+
 </style>
 
 <script>
@@ -92,3 +80,75 @@ width: 70%;
 				});
 		};
 </script>
+<style type="text/css">
+	body{
+		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#7157df+0,8730cf+100 */
+	background: #7157df; /* Old browsers */
+	background: -moz-linear-gradient(-45deg, #7157df 0%, #8730cf 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(-45deg, #7157df 0%,#8730cf 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(135deg, #7157df 0%,#8730cf 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#7157df', endColorstr='#8730cf',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	font-family: 'Open Sans', sans-serif;
+}
+.logo{
+	font-size: 30px;
+	margin: 0 auto;
+	width: 100%;
+	text-align: center;
+	color: #FFF;
+	margin-top: 50px;
+}
+.url-container{
+	width: 80%;
+	margin-left: 10%;
+	margin-top: 100px;
+}
+.url-box{
+	padding: 15px;
+	font-size: 16px;
+	width: 85%;
+	float: left;
+	border-radius: 5px;
+	border: 0;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+.submit-button{
+	width: 15%;
+	float: left;
+	background: #6ed624;
+	border: 0;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	font-size: 16px;
+	padding: 15px;
+	cursor: pointer;
+	color: #FFF;
+	text-transform: uppercase;
+}
+.results{
+	width: 75%;
+	margin-left: 10%;
+}
+.results .image{
+	width: 250px;
+    height: auto;
+    float: left;
+}
+img{
+	height: auto;
+    width: 100%;
+	padding-top: 50;
+}
+#label li{
+	background: url("photos/tag.png");
+	padding: 12px;
+	border-radius: 50px;
+	background: #FFF;
+    margin: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    float: left;
+	width: auto;
+}
+</style>

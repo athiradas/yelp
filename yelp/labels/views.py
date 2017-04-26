@@ -42,9 +42,9 @@ def index(request):
 				label["Ambience is Classy"] = label_prob[0][7] * 100
 				label["Good for Kids"] = label_prob[0][8] * 100
 				
-				true_label = {k: v for k, v in label.items() if v > 45}
+				true_label = {k: v for k, v in label.items() if v > 43}
 				context = {'true_label':true_label, 'url': url}
-				print (true_label)
+				print (label)
 				return HttpResponse(template.render(context, request))
 
 
